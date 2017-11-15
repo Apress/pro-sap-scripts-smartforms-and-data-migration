@@ -1,0 +1,260 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH02_03_PPRG_YCH02_03_PORDER2
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH02_03_PPRG_YCH02_03_PORDER2.
+
+**********************************************
+* Print Program of Form: YCH02_03_PORDER2   **
+* Purchase Order Output with Custom Form    **
+* Demonstrate PERFORM <external subroutine> **
+**********************************************
+
+************ Data Declarations**************
+TABLES: EKKO,   "Purchasing Doc Header
+        LFA1,   "Vendor Primary
+        T001,   "Company Code
+        SADR,   "Address Management - Company Code & Organizational Units
+        ADRS,   "Address Management - Structure
+        T024,   "Purchasing Groups
+        T166U,  "Labels in Purchasing Document Printout
+        YCH02_EKPO_MAKT, "View with Purchasing Doc Items & Material Texts
+        T001W,  "Plant & Branches
+        EKET,   "Material Delivery Dates
+        T052.   "Payment Terms
+
+DATA: ITEM_TAB   TYPE STANDARD TABLE OF YCH02_EKPO_MAKT.
+
+DATA: LENGTH(2)          TYPE N, "Length of Company Code Name
+      PCNT               TYPE I, "Counter for Number of Purchase Orders Output
+      TOTAL              TYPE NETPR, "Total for a Purchase Order
+
+** Data Declarations - to Store Long Texts from Data Elements**
+      YCH02_EKNAM        TYPE STRING, "contact person
+      YCH02_EKTEL        TYPE STRING, "to telephone
+      YCH02_LIFNR        TYPE STRING, "your vendor no with us
+      YCH02_VERKF        TYPE STRING, "your person responsible
+      YCH02_CONSG        TYPE STRING, "please deliver to
+      YCH02_EINDT        TYPE STRING, "delivery date
+      YCH02_INCO1        TYPE STRING, "terms of delivery
+      YCH02_ZBTXT        TYPE STRING, "terms of payment
+      WAERS_LT           TYPE WAERS,  "currency code
+      YCH02_MATNR        TYPE STRING, "material code
+      YCH02_MAKTX        TYPE STRING, "description
+      YCH02_MENGE        TYPE STRING, "order quantity
+      YCH02_MEINS        TYPE STRING, "units
+      YCH02_NETPR        TYPE STRING, "price per unit
+      NETWR              TYPE STRING, "net value
+      YCH02_PAGE         TYPE STRING, "page
+      YCH02_TOTAL_NET_E  TYPE STRING, "total net excl tax
+      YCH02_INWORDS      TYPE STRING. "total amount in words
+
+***** Data Declarations - Payment Terms *****
+DATA: BEGIN OF ZBTXT_STRU,
+       STR(50),
+      END OF ZBTXT_STRU,
+      ZBTXT_TAB LIKE STANDARD TABLE OF ZBTXT_STRU.
+
+
+*********************************************
+SELECT-OPTIONS PO_NOS FOR EKKO-EBELN MATCHCODE OBJECT
+     YCH02_01_EKKO_LFA1_SH.
+********************Fill Selection Table ************
+*****************************************************
+INITIALIZATION.
+PO_NOS-SIGN   = 'I'.
+PO_NOS-OPTION = 'EQ'.
+PO_NOS-LOW    = '4500004823'.
+APPEND PO_NOS TO PO_NOS.
+
+PO_NOS-LOW    = '4500009520'.
+APPEND PO_NOS TO PO_NOS.
+
+
+*************************************************
+START-OF-SELECTION.
+
+CALL FUNCTION 'OPEN_FORM' "OPEN_FORM (once)
+ EXPORTING
+   FORM                          = 'YCH02_03_PORDER2'
+   LANGUAGE                      = 'E'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+*****Main Loop *****
+
+SELECT * FROM EKKO WHERE EBELN IN PO_NOS.
+
+ IF ( EKKO-SPRAS <> 'D' AND EKKO-SPRAS <> 'E' ) OR EKKO-BSTYP <> 'F'
+    OR ( EKKO-BSART <>'NB'	AND EKKO-BSART <> 'PO' ).
+  CONTINUE.
+ ENDIF.
+
+ SELECT SINGLE * FROM LFA1 WHERE LIFNR = EKKO-LIFNR. "Get Vendor
+
+ IF EKKO-ADRNR = ' '.
+
+  EKKO-ADRNR = LFA1-ADRNR.
+ ENDIF.
+
+ SELECT SINGLE * FROM T001 WHERE BUKRS = EKKO-BUKRS. "Get Company Code
+
+ SELECT SINGLE * FROM T166U WHERE BSTYP = EKKO-BSTYP AND BSART = EKKO-BSART
+   AND SPRAS = EKKO-SPRAS AND DRUVO = '1'.  "Get Title for Document
+
+ SELECT SINGLE * FROM T024 WHERE EKGRP = EKKO-EKGRP. "Get Purchasing Group
+ SELECT SINGLE * FROM T052 WHERE ZTERM = EKKO-ZTERM. "Get Payment Terms
+
+
+*****Retrieve Long Texts from Data Elements*****
+ PERFORM GET_TEXT_DE USING 'YCH02_EKNAM' EKKO-SPRAS YCH02_EKNAM.
+ PERFORM GET_TEXT_DE USING 'YCH02_EKTEL' EKKO-SPRAS YCH02_EKTEL.
+ PERFORM GET_TEXT_DE USING 'YCH02_LIFNR' EKKO-SPRAS YCH02_LIFNR.
+ PERFORM GET_TEXT_DE USING 'YCH02_VERKF' EKKO-SPRAS YCH02_VERKF.
+ PERFORM GET_TEXT_DE USING 'YCH02_CONSG' EKKO-SPRAS YCH02_CONSG.
+ PERFORM GET_TEXT_DE USING 'YCH02_EINDT' EKKO-SPRAS YCH02_EINDT.
+ PERFORM GET_TEXT_DE USING 'YCH02_INCO1' EKKO-SPRAS YCH02_INCO1.
+ PERFORM GET_TEXT_DE USING 'YCH02_ZBTXT' EKKO-SPRAS YCH02_ZBTXT.
+ PERFORM GET_TEXT_DE USING 'WAERS'       EKKO-SPRAS WAERS_LT.
+
+ PERFORM GET_TEXT_DE USING 'YCH02_MATNR' EKKO-SPRAS YCH02_MATNR.
+ PERFORM GET_TEXT_DE USING 'YCH02_MAKTX' EKKO-SPRAS YCH02_MAKTX.
+ PERFORM GET_TEXT_DE USING 'YCH02_MENGE' EKKO-SPRAS YCH02_MENGE.
+ PERFORM GET_TEXT_DE USING 'YCH02_MEINS' EKKO-SPRAS YCH02_MEINS.
+ PERFORM GET_TEXT_DE USING 'YCH02_NETPR' EKKO-SPRAS YCH02_NETPR.
+ PERFORM GET_TEXT_DE USING 'NETWR'       EKKO-SPRAS NETWR.
+
+ PERFORM GET_TEXT_DE USING 'YCH02_PAGE'  EKKO-SPRAS YCH02_PAGE.
+ PERFORM GET_TEXT_DE USING 'YCH02_TOTAL_NET_ETAX' EKKO-SPRAS YCH02_TOTAL_NET_E.
+ PERFORM GET_TEXT_DE USING 'YCH02_INWORDS' EKKO-SPRAS YCH02_INWORDS.
+
+*****Retrieve Payment Terms Text *****
+ CALL FUNCTION 'FI_PRINT_ZTERM'
+   EXPORTING
+    I_ZTERM         = EKKO-ZTERM
+    I_LANGU         = EKKO-SPRAS
+    I_XT052U        = 'X'
+    I_T052          = T052
+   TABLES
+    T_ZTEXT         = ZBTXT_TAB
+.
+
+ READ TABLE ZBTXT_TAB INTO ZBTXT_STRU INDEX 1.
+
+***** *****
+ CALL FUNCTION 'START_FORM' "START_FORM (for every purchase order)
+  EXPORTING
+    FORM                   = 'YCH02_03_PORDER2'
+    LANGUAGE               = 'E'
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+*****Company Code Name & Address *****
+ SELECT SINGLE * FROM SADR WHERE ADRNR = T001-ADRNR."Get Address of Company Cd
+ SADR-ANRED = ' '. "No Title for Company Code Name
+ CLEAR ADRS.
+ MOVE-CORRESPONDING SADR TO ADRS.
+
+ CALL FUNCTION 'ADDRESS_INTO_PRINTFORM'
+  EXPORTING
+    ADRSWA_IN                            = ADRS
+  IMPORTING
+    ADRSWA_OUT                           = ADRS
+           .
+
+ LENGTH = STRLEN( ADRS-LINE0 ).
+
+ PERFORM WRITE_FRM USING 'SENDER' 'SENDER'.
+
+*****Loop for Items *****
+  SELECT * FROM YCH02_EKPO_MAKT INTO TABLE ITEM_TAB "Load itab from View
+   WHERE EBELN = EKKO-EBELN AND BUKRS = EKKO-BUKRS AND SPRAS = EKKO-SPRAS.
+
+ PERFORM WRITE_FRM USING 'ITEM_HD' 'ITEM_HEAD'.
+
+ TOTAL = 0. "Initialize for Purchase order
+
+ LOOP AT ITEM_TAB INTO YCH02_EKPO_MAKT.
+
+  IF SY-TABIX = 1.
+
+   SELECT SINGLE * FROM EKET WHERE EBELN = YCH02_EKPO_MAKT-EBELN AND
+     EBELP = YCH02_EKPO_MAKT-EBELP. "Get Delivery Date
+
+   SELECT SINGLE * FROM T001W WHERE WERKS = YCH02_EKPO_MAKT-WERKS.
+   MOVE-CORRESPONDING T001W TO SADR. "Get Consignee/Delivery Address
+  ENDIF.
+
+  PERFORM WRITE_FRM USING 'MAIN' 'ITEM_DATA'.
+  TOTAL = TOTAL + YCH02_EKPO_MAKT-NETWR.
+ ENDLOOP.
+
+*****Item Loop Over ******
+ PERFORM WRITE_FRM USING 'TOTAL' 'TOTAL'.
+
+ CALL FUNCTION 'END_FORM' "ENd_FORM (for every purchase order)
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+ PCNT = PCNT + 1.
+
+ENDSELECT.
+*****Main Loop Over *****
+
+CALL FUNCTION 'CLOSE_FORM' "CLOSE_FORM (once)
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+IF PCNT = 0.
+  MESSAGE S000(YCH02_MCLASS) DISPLAY LIKE 'W'. "No Data Processed for Output
+ENDIF.
+
+************************************
+*****Subroutine for WRITE_FORM *****
+************************************
+FORM WRITE_FRM USING VALUE(WINDOW) VALUE(ELEMENT).
+
+ CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    ELEMENT                        = ELEMENT
+    WINDOW                         = WINDOW
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+ENDFORM.
+
+***************************************************************
+*****Subroutine to Retrieve Long Texts from Data Elements *****
+***************************************************************
+FORM GET_TEXT_DE USING VALUE(DE_NAME) VALUE(LANG) RET_TEXT.
+DATA: LTEXT TYPE SCRTEXT_L.
+
+ CALL FUNCTION 'WCGW_DATA_ELEMENT_TEXT_GET'
+   EXPORTING
+     I_DATA_ELEMENT            = DE_NAME
+     I_LANGUAGE                = LANG
+  IMPORTING
+    E_SCRTEXT_L                = LTEXT
+           .
+
+RET_TEXT = LTEXT.
+ENDFORM.
+*****End Program *****

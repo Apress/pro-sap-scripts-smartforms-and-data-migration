@@ -1,0 +1,104 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH02_05_PPRG_YCH02_05_SALESUM
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH02_05_PPRG_YCH02_05_SALESUM.
+
+**************************************************
+* Print Program for Form: YCH02_05_SALESUM      **
+* Customer Wise Sales Summary of a Company Code **
+**************************************************
+
+TYPES: BEGIN OF CUST_SUMM_TP,
+        KUNNR      TYPE KUNNR,
+        NAME1      TYPE NAME1_GP,
+        KURRF      TYPE KURRF,
+        NETWR      TYPE NETWR,
+       END OF CUST_SUMM_TP.
+
+TABLES: T001.
+
+DATA: CUST_SUMM_TAB  TYPE STANDARD TABLE OF CUST_SUMM_TP,
+      CUST_SUMM_STRU TYPE CUST_SUMM_TP,
+      SRL_NO         TYPE SY-TABIX,
+      TOTAL          TYPE NETWR.
+
+**********************************************************************
+PARAMETERS COMP_CD TYPE VBRK-BUKRS DEFAULT 3000 VALUE CHECK.
+
+START-OF-SELECTION.
+
+SELECT SINGLE * FROM T001 WHERE BUKRS = COMP_CD.
+
+SELECT KUNNR NAME1 KURRF NETWR FROM YCH02_VBRK_KNA1 INTO
+      CUST_SUMM_STRU WHERE BUKRS = COMP_CD.
+
+ CUST_SUMM_STRU-NETWR = CUST_SUMM_STRU-NETWR * CUST_SUMM_STRU-KURRF.
+ CUST_SUMM_STRU-KURRF = 0.
+
+ COLLECT CUST_SUMM_STRU INTO CUST_SUMM_TAB.
+ENDSELECT.
+
+IF LINES( CUST_SUMM_TAB ) = 0.
+ MESSAGE S001(YCH02_MCLASS) DISPLAY LIKE 'E'. "No Data Retrieved
+ EXIT.
+ENDIF.
+
+SORT CUST_SUMM_TAB BY KUNNR.
+
+CALL FUNCTION 'OPEN_FORM'
+ EXPORTING
+   FORM                              = 'YCH02_05_SALESUM'
+   LANGUAGE                          = 'E'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+CALL FUNCTION 'START_FORM'
+ EXPORTING
+   FORM                   = 'YCH02_05_SALESUM'
+   LANGUAGE               = 'E'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+
+LOOP AT CUST_SUMM_TAB INTO CUST_SUMM_STRU.
+ SRL_NO = SY-TABIX.
+ TOTAL = TOTAL + CUST_SUMM_STRU-NETWR.
+
+ CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    ELEMENT                        = 'ITEM_DATA'
+    WINDOW                         = 'MAIN'
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+          WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+
+ENDLOOP.
+***************************************
+
+CALL FUNCTION 'END_FORM'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+CALL FUNCTION 'CLOSE_FORM'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.

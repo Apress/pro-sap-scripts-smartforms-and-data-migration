@@ -1,0 +1,94 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH04_01_DPRG_YCH04_01_ADR_STK
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH04_01_DPRG_YCH04_01_ADR_STK.
+
+**********************************************************
+* Address Labels for Vendors of a Specific Company Code **
+**********************************************************
+
+
+TYPES: BEGIN OF INTER_STRU_TP,
+        LIFNR    TYPE LIFNR,
+        ANRED    TYPE ANRED,
+        ADRNR    TYPE ADRNR,
+        SPRAS    TYPE SPRAS,
+       END OF INTER_STRU_TP.
+
+TABLES: T001.
+
+DATA: LFA1_TAB    TYPE STANDARD TABLE OF YCH04_LFA1_ADRNR_STRU,
+      LFA1_STRU   TYPE YCH04_LFA1_ADRNR_STRU, "ABAP dictionary structure
+      INTER_TAB   TYPE STANDARD TABLE OF INTER_STRU_TP,
+      INTER_STRU  TYPE INTER_STRU_TP,
+      COUNTER(1)  TYPE N.
+
+********************************************************************
+PARAMETERS: COMP_CD  TYPE KNB1-BUKRS DEFAULT 3000 VALUE CHECK.
+
+********************************************************************
+START-OF-SELECTION.
+
+SELECT SINGLE * FROM T001 WHERE BUKRS = COMP_CD.
+
+SELECT LIFNR ANRED ADRNR SPRAS FROM YCH02_LFA1_LFB1 INTO TABLE INTER_TAB
+         WHERE BUKRS = COMP_CD.
+
+IF LINES( INTER_TAB ) = 0.
+ MESSAGE S001(YCH02_MCLASS) DISPLAY LIKE 'E'. "No Data Retrieved
+ EXIT.
+ENDIF.
+
+SORT INTER_TAB BY LIFNR.
+
+LOOP AT INTER_TAB INTO INTER_STRU.
+ COUNTER = COUNTER + 1.
+ CASE COUNTER.
+  WHEN 1.
+   LFA1_STRU-ANRED1 = INTER_STRU-ANRED.
+   LFA1_STRU-ADRNR1 = INTER_STRU-ADRNR.
+   LFA1_STRU-SPRAS1 = INTER_STRU-SPRAS.
+  WHEN 2.
+   LFA1_STRU-ANRED2 = INTER_STRU-ANRED.
+   LFA1_STRU-ADRNR2 = INTER_STRU-ADRNR.
+   LFA1_STRU-SPRAS2 = INTER_STRU-SPRAS.
+  WHEN 3.
+   LFA1_STRU-ANRED3 = INTER_STRU-ANRED.
+   LFA1_STRU-ADRNR3 = INTER_STRU-ADRNR.
+   LFA1_STRU-SPRAS3 = INTER_STRU-SPRAS.
+ ENDCASE.
+ IF COUNTER = 3.
+  APPEND LFA1_STRU TO LFA1_TAB.
+  COUNTER = 0.
+  CLEAR LFA1_STRU.
+ ENDIF.
+ENDLOOP.
+*********************************************************
+IF COUNTER > 0.
+ APPEND LFA1_STRU TO LFA1_TAB.
+ENDIF.
+
+**********************************************************
+CALL FUNCTION '/1BCDWB/SF00000149' "change the function module name
+                                   "as per the generated name
+
+  EXPORTING
+    LAND1                     = T001-LAND1
+  TABLES
+    LFA1_ADRNR_TAB            = LFA1_TAB
+ EXCEPTIONS
+   FORMATTING_ERROR           = 1
+   INTERNAL_ERROR             = 2
+   SEND_ERROR                 = 3
+   USER_CANCELED              = 4
+   OTHERS                     = 5
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.

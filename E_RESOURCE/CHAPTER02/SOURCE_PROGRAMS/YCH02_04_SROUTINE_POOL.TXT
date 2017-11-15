@@ -1,0 +1,213 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH02_04_SROUTINE_POOL
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH02_04_SROUTINE_POOL.
+
+******************************************************
+* Sub Routine Pool used with SAP Script Forms:      **
+* YCH02_03_PORDER2 & YCH02_04_MEDRUCK               **
+*                                                   **
+******************************************************
+
+FORM CALL_SPELL_AMOUNT TABLES INPUT_TAB  STRUCTURE ITCSY
+                              OUTPUT_TAB STRUCTURE ITCSY.
+
+******************************************************
+* Input Parameters:  AMOUNT, SPRAS, WAERS           **
+* Output Parameters: IN_WORD1, IN_WORD2             **
+******************************************************
+
+* Data Declaration
+******************
+DATA: STR(140)         TYPE C,
+      STR1(70)         TYPE C,
+      STR2(70)         TYPE C,
+      STR_TAB          LIKE STANDARD TABLE OF STR1,
+      SPELL            TYPE SPELL,
+      AMT(8)           TYPE P DECIMALS 2,
+      SPRAS            TYPE SY-LANGU,
+      LEN              TYPE I,
+      WAERS            TYPE WAERS,
+      SAP_WAERS        TYPE TCURC-WAERS,
+      ISO_WAERS        TYPE TCURC-ISOCD.
+
+* Extract Parameters from INPUT_TAB
+***********************************
+READ TABLE INPUT_TAB WITH KEY 'AMOUNT'.
+
+DO.
+ REPLACE:',' WITH ' ' INTO INPUT_TAB-VALUE.
+ IF SY-SUBRC <> 0.
+  REPLACE: '.' WITH ' ' INTO INPUT_TAB-VALUE.
+  IF SY-SUBRC <> 0.
+   EXIT.
+  ENDIF.
+ ENDIF.
+ENDDO.
+
+CONDENSE INPUT_TAB-VALUE NO-GAPS.
+MOVE INPUT_TAB-VALUE TO AMT.
+AMT = AMT / 100.
+
+READ TABLE INPUT_TAB WITH KEY 'SPRAS'.
+SPRAS = INPUT_TAB-VALUE.
+
+READ TABLE INPUT_TAB WITH KEY 'WAERS'.
+WAERS = INPUT_TAB-VALUE.
+MOVE WAERS TO SAP_WAERS.
+
+* Convert SAP currency code to ISO currency code
+************************************************
+CALL FUNCTION 'CURRENCY_CODE_SAP_TO_ISO'
+  EXPORTING
+    SAP_CODE          = SAP_WAERS
+  IMPORTING
+    ISO_CODE          = ISO_WAERS
+  EXCEPTIONS
+    NOT_FOUND         = 1
+    OTHERS            = 2
+            .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ EXIT.
+ELSE.
+  MOVE ISO_WAERS TO WAERS.
+ENDIF.
+
+* Call Function Module SPELL_AMOUNT
+***********************************
+CALL FUNCTION 'SPELL_AMOUNT'
+  EXPORTING
+    AMOUNT          = AMT
+    CURRENCY        = WAERS
+    FILLER          = ' '
+    LANGUAGE        = SPRAS
+  IMPORTING
+    IN_WORDS        = SPELL
+  EXCEPTIONS
+    NOT_FOUND       = 1
+    TOO_LARGE       = 2
+    OTHERS          = 3.
+
+IF SY-SUBRC = 0.
+
+ CONCATENATE SPELL-WORD WAERS SPELL-DECIMAL
+  INTO STR SEPARATED BY SPACE.
+ELSE.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ EXIT.
+ENDIF.
+
+* Split STR into Two Lines
+**************************
+CALL FUNCTION 'YCH02_01_SPLIT_STRING'
+  EXPORTING
+    STRING_TO_SPLIT                      = STR
+  TABLES
+    STABLE                               = STR_TAB
+ EXCEPTIONS
+   IMPORT_PARAMETER_TYPE_INVALID        = 1
+   RETURN_TABLE_ELEMENT_NOT_TYPEC       = 2
+   OTHERS                               = 3
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ EXIT.
+ENDIF.
+
+* Update Values in OUTPUT_TAB Table
+************************************
+READ TABLE STR_TAB INTO STR1 INDEX 1.
+
+READ TABLE OUTPUT_TAB WITH KEY 'IN_WORD1'.
+IF SY-SUBRC = 0.
+ OUTPUT_TAB-VALUE = STR1.
+ MODIFY OUTPUT_TAB INDEX SY-TABIX.
+ENDIF.
+
+READ TABLE STR_TAB INTO STR2 INDEX 2.
+
+READ TABLE OUTPUT_TAB WITH KEY 'IN_WORD2'.
+IF SY-SUBRC = 0.
+ OUTPUT_TAB-VALUE = STR2.
+ MODIFY OUTPUT_TAB INDEX SY-TABIX.
+ENDIF.
+
+*BREAK-POINT.
+ENDFORM. "CALL_SPELL_AMOUNT
+
+*****************************************************************
+*****************************************************************
+FORM GET_FORMAT_SENDER_ADDRESS TABLES INPUT_TAB  STRUCTURE ITCSY
+                                      OUTPUT_TAB STRUCTURE ITCSY.
+*****************************************************************
+* Input Parameters:  ADRNR                                     **
+* Output Parameters: TE_LINE0, TE_LINE1, TE_LINE2, TE_LINE3,   **
+*                    TE_LINE4, TE_LINE5, TE_LINE6, TE_LINE7,   **
+*                    TE_LINE8, TE_LINE9                        **
+*****************************************************************
+* Data Declaration
+******************
+TABLES: SADR, ADRS.   "Address Management - Table & Structure
+
+DATA: ADRNR            TYPE ADRNR,
+      LENGTH(2)        TYPE N,
+      LEN(1)           TYPE N,
+      KEY(128)         TYPE C.
+
+FIELD-SYMBOLS: <FS1>, <FS2>.
+
+* Extract Parameters from INPUT_TAB
+***********************************
+READ TABLE INPUT_TAB WITH KEY 'T001-ADRNR'.
+IF SY-SUBRC <> 0.
+ EXIT.
+ENDIF.
+
+ADRNR = INPUT_TAB-VALUE.
+
+***** Get Company Code Name & Address to Int. Postal Format*****
+****************************************************************
+SELECT SINGLE * FROM SADR WHERE ADRNR = ADRNR."Get Address of Company Cd
+SADR-ANRED = ' '. "No Title for Company Code Name
+CLEAR ADRS.
+MOVE-CORRESPONDING SADR TO ADRS.
+
+CALL FUNCTION 'ADDRESS_INTO_PRINTFORM'
+ EXPORTING
+   ADRSWA_IN                            = ADRS
+ IMPORTING
+   ADRSWA_OUT                           = ADRS
+           .
+
+IF SY-SUBRC <> 0.
+ EXIT.
+ENDIF.
+
+LENGTH = STRLEN( ADRS-LINE0 ).
+
+* Update Values in OUTPUT_TAB Table
+************************************
+DO 10 TIMES.
+ LEN = SY-INDEX - 1.
+ CONCATENATE 'TE_LINE' LEN INTO KEY.
+ READ TABLE OUTPUT_TAB WITH KEY KEY.
+
+ IF SY-SUBRC = 0.
+  CONCATENATE 'ADRS-LINE' LEN INTO KEY.
+  ASSIGN (KEY) TO <FS1>.
+  OUTPUT_TAB-VALUE = <FS1>.
+  MODIFY OUTPUT_TAB INDEX SY-TABIX.
+ ENDIF.
+
+ENDDO.
+*BREAK-POINT.
+ENDFORM. "GET_FORMAT_SENDER_ADDRESS

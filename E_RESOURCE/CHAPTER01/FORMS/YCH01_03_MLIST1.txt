@@ -1,0 +1,34 @@
+SFORMYCH01_03_MLIST1
+HFORMYCH01_03_MLIST1
+ OLANE
+ HEADFORM      YCH01_03_MLIST1 SAP                                                   DEF EMaterial List - Potrait Mode                      YCH01_03_MLIST1         00005SAPUSER     700 20150109182450SAPUSER     700 2015010920045513200008 E0                                                                                                                           800
+ LINE/:FORM CPI 10; LPI 6; TAB-STOP 1 CM; FONT-SIZE 10; START-PAGE FIRST;
+ LINE/:FORM PARAGRAPH P1; RDI; RDIDEV;
+ LINE/:PARAGRAPH P1 LINE-SPACE 1 LN;
+ LINE/:WINDOW HEADING TYPE VAR;
+ LINE/:WINDOW MAIN
+ LINE/:PAGE FIRST NEXT FIRST; ARABIC 3;
+ LINE/:PAGE FIRST MAIN 0 5 MM 35 MM 150 MM 255 MM;
+ LINE/:PAGE FIRST WINDOW HEADING 5 MM 5 MM 150 MM 30 MM;
+ END
+ HEADFORM      YCH01_03_MLIST1 SAP                                                   TXT EMaterial List - Potrait Mode                      YCH01_03_MLIST1         00005SAPUSER     700 20150109182450SAPUSER     700 2015010920045513200017 E0                                                                                                                           800
+ LINE/:FORM TEXT 'Material List - Potrait Mode';
+ LINE/:PARAGRAPH P1 TEXT 'Default Paragraph';
+ LINE/:WINDOW HEADING TEXT 'HEADING';
+ LINE/:WINDOW MAIN TEXT 'Main Window';
+ LINE/:PAGE FIRST TEXT 'Only Page';
+ LINE/WMAIN
+ LINE/ELIST_DATA
+ LINE* &SRL_NO(Z5)& &MAKT-MATNR(K18)& &MAKT-MAKTX(40)&
+ LINE/WHEADING
+ LINE/ELIST_HEADING
+ LINE* List of Materials as on &SYST-DATUM&
+ LINE=                       Page: &PAGE&
+ LINE*
+ LINE* &ULINE(65)&
+ LINE*  Srl.  Material Code        Description
+ LINE*   No.
+ LINE* &ULINE(65)&
+ END
+ ACTVSAP
+E

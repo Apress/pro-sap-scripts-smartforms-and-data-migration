@@ -1,0 +1,28 @@
+SFORMYCH01_02_SEC_FRM
+HFORMYCH01_02_SEC_FRM
+ OLANE
+ HEADFORM      YCH01_02_SEC_FRMSAP                                                   DEF EForm using Standard Text                          YCH01_02_SEC_FRM        000001SAPUSER     700 2015011114292SAPUSER     700 2017072610503513200009 E0                                                                                                                           800
+ LINE/:FORM CPI 10; LPI 6; TAB-STOP 1 CM; START-PAGE FIRST; PARAGRAPH P1; RDI;
+ LINE/:FORM RDIDEV;
+ LINE/:PARAGRAPH P1 LINE-SPACE 1 LN;
+ LINE/:WINDOW LOGO TYPE GRAPH;
+ LINE/:WINDOW MAIN
+ LINE/:WINDOW VARIABLE TYPE VAR;
+ LINE/:PAGE FIRST
+ LINE/:PAGE FIRST WINDOW LOGO 5 MM 5 MM 40.64 MM 29.81 MM;
+ LINE/:PAGE FIRST WINDOW VARIABLE 46 MM 5 MM 160 MM 190 MM;
+ END
+ HEADFORM      YCH01_02_SEC_FRMSAP                                                   TXT EForm using Standard Text                          YCH01_02_SEC_FRM        000001SAPUSER     700 2015011114292SAPUSER     700 2017072610503513200010 E0                                                                                                                           800
+ LINE/:FORM TEXT 'Form using Standard Text';
+ LINE/:PARAGRAPH P1 TEXT 'Default Oaragraph';
+ LINE/:WINDOW LOGO TEXT 'COMPANY LOGO';
+ LINE/:WINDOW MAIN TEXT 'Main Window';
+ LINE/:WINDOW VARIABLE TEXT 'Variable Window';
+ LINE/:PAGE FIRST TEXT 'Only Page';
+ LINE/WLOGO
+ LINE/:BITMAP 'YCH01_COMPANY_LOGO' OBJECT GRAPHICS ID BMAP TYPE BCOL
+ LINE/WVARIABLE
+ LINE/:INCLUDE YCH01_01_SEL_TABLES OBJECT TEXT ID ST
+ END
+ ACTVSAP
+E

@@ -1,0 +1,21 @@
+SSTYLYCH01_01
+HSTYLYCH01_01
+ OLANE
+ HEADSTYLE     YCH01_01        SAP                                                   DEF E2 Paragraph Fs, 3 Character Fs                                    YCH01_0100000SAPUSER     700 20150111163732SAPUSER     700 2015011117271713200006 E0                                                                                                                           800
+ LINE/:STYLE PARAGRAPH P1;
+ LINE/:PARAGRAPH P1 LINE-SPACE 1 LN;
+ LINE/:PARAGRAPH P2 LINE-SPACE 1 LN; SPACE-AFTER 1 LN; FIRST-LINE-INDENT 5 CH;
+ LINE/:PARAGRAPH P3 LINE-SPACE 2 LN;
+ LINE/:STRING C1 FONT YARIAL_M; FONT-SIZE 28;
+ LINE/:STRING C2 FONT COURIER; FONT-SIZE 12; BOLD ON; ULINE ON;
+ END
+ HEADSTYLE     YCH01_01        SAP                                                   TXT E2 Paragraph Fs, 3 Character Fs                                    YCH01_0100000SAPUSER     700 20150111163732SAPUSER     700 2015011117271713200006 E0                                                                                                                           800
+ LINE/:STYLE TEXT '2 Paragraph Fs, 3 Character Fs';
+ LINE/:PARAGRAPH P1 TEXT 'Para 1';
+ LINE/:PARAGRAPH P2 TEXT 'Para 2';
+ LINE/:PARAGRAPH P3 TEXT 'Para 3';
+ LINE/:STRING C1 TEXT 'YARIAL_M Monospaced 28';
+ LINE/:STRING C2 TEXT 'Courier 12 Bold & Underlined';
+ END
+ ACTVSAP
+E

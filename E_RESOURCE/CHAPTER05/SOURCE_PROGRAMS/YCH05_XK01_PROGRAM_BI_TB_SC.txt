@@ -1,0 +1,216 @@
+report YCH05_XK01_PROGRAM_BI_TB_SC
+       no standard page heading line-size 255.
+
+CONSTANTS: ROWS_IN_TB(2) TYPE N VALUE 5. "no of visible rows in table control
+
+DATA: BEGIN OF MAIN_STRU, "stru - main
+       LIFNR    TYPE LIFNR,
+       NAME1    TYPE NAME1_GP,
+       STRAS    TYPE STRAS_GP,
+       ORT01    TYPE ORT01_GP,
+       PSTLZ    TYPE PSTLZ,
+      END OF MAIN_STRU,
+
+      BEGIN OF BANK_STRU, "stru - bank
+       LIFNR    TYPE LIFNR,
+       BANKS    TYPE BANKS,
+       BANKL    TYPE BANKL,
+       BANKN    TYPE BANKN,
+      END OF BANK_STRU,
+
+      MAIN_TAB  LIKE STANDARD TABLE OF MAIN_STRU, "itab - main
+      BANK_TAB  LIKE STANDARD TABLE OF BANK_STRU, "itab - bank
+
+      MAIN_FL   TYPE IBIPPARMS-PATH, "to select file from presentation server
+      BANK_FL   TYPE IBIPPARMS-PATH,
+
+      SORTL     TYPE STRING, "for SORTL field
+      GSTRING   TYPE STRING, "string for general use
+
+      INDX(2)   TYPE N. "bank data index
+
+
+include bdcrecx1.
+
+PARAMETERS: MFILE TYPE STRING,
+            BFILE TYPE STRING.
+
+***********************************************
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR MFILE.
+
+CALL FUNCTION 'F4_FILENAME'
+ IMPORTING
+   FILE_NAME           = MAIN_FL.
+
+MFILE = MAIN_FL.
+
+***********************************************
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR BFILE.
+
+CALL FUNCTION 'F4_FILENAME'
+ IMPORTING
+   FILE_NAME           = BANK_FL.
+
+BFILE = BANK_FL.
+
+
+start-of-selection.
+
+CALL FUNCTION 'GUI_UPLOAD'
+  EXPORTING
+    FILENAME                      = MFILE
+    FILETYPE                      = 'ASC'
+  TABLES
+    DATA_TAB                      = MAIN_TAB
+          .
+
+CALL FUNCTION 'GUI_UPLOAD'
+  EXPORTING
+    FILENAME                      = BFILE
+    FILETYPE                      = 'ASC'
+  TABLES
+    DATA_TAB                      = BANK_TAB
+          .
+
+IF LINES( MAIN_TAB ) = 0.
+ MESSAGE S001(YCH02_MCLASS) DISPLAY LIKE 'E'. "No Data Retrieved
+ EXIT.
+ENDIF.
+
+
+perform open_group.
+
+LOOP AT MAIN_TAB INTO MAIN_STRU. "main loop
+
+perform bdc_dynpro      using 'SAPMF02K' '0100'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'RF02K-KTOKK'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'RF02K-LIFNR'
+                              MAIN_STRU-LIFNR. "'91001'.
+perform bdc_field       using 'RF02K-BUKRS'
+                              '0001'.
+perform bdc_field       using 'RF02K-EKORG'
+                              '0001'.
+perform bdc_field       using 'RF02K-KTOKK'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0110'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFA1-SPRAS'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFA1-ANRED'
+                              'Company'.
+perform bdc_field       using 'LFA1-NAME1'
+                              MAIN_STRU-NAME1. "'OBELIX AND COMPANY'.
+
+SPLIT MAIN_STRU-NAME1 AT ' ' INTO SORTL GSTRING.
+
+perform bdc_field       using 'LFA1-SORTL'
+                              SORTL. "'OBELIX'.
+perform bdc_field       using 'LFA1-STRAS'
+                              MAIN_STRU-STRAS. "'456, M.G. ROAD'.
+perform bdc_field       using 'LFA1-ORT01'
+                              MAIN_STRU-ORT01. "'NEW DELHI'.
+perform bdc_field       using 'LFA1-PSTLZ'
+                              MAIN_STRU-PSTLZ. "'110102'.
+perform bdc_field       using 'LFA1-LAND1'
+                              'IN'.
+perform bdc_field       using 'LFA1-SPRAS'
+                              'EN'.
+perform bdc_dynpro      using 'SAPMF02K' '0120'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFA1-KUNNR'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_dynpro      using 'SAPMF02K' '0130'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFBK-BANKN(01)'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+
+INDX   = 0.
+
+LOOP AT BANK_TAB INTO BANK_STRU WHERE
+                   LIFNR = MAIN_STRU-LIFNR. "inner bank loop
+
+
+
+INDX = INDX + 1.
+
+CONCATENATE 'LFBK-BANKS(' INDX ')' INTO GSTRING.
+
+perform bdc_field       using GSTRING "'LFBK-BANKS(01)'
+                              BANK_STRU-BANKS. "'US'.
+
+CONCATENATE 'LFBK-BANKL(' INDX ')' INTO GSTRING.
+perform bdc_field       using GSTRING "'LFBK-BANKL(01)'
+                              BANK_STRU-BANKL. "'123123123'.
+
+CONCATENATE 'LFBK-BANKN(' INDX ')' INTO GSTRING.
+perform bdc_field       using GSTRING "'LFBK-BANKN(01)'
+                              BANK_STRU-BANKN. "'1234567'.
+
+IF INDX = ROWS_IN_TB. " no of rows visible in table control reached
+ INDX = 0.            " trigger next page scroll
+
+ perform bdc_field       using 'BDC_CURSOR'
+                               'LFBK-BANKN(05)'.
+
+ perform bdc_field       using 'BDC_OKCODE'
+                               '/23'. "'=P+'. " P+ function code for next page
+
+ENDIF.
+
+perform bdc_dynpro      using 'SAPMF02K' '0130'.
+
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFBK-BANKS(01)'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+ENDLOOP.
+
+perform bdc_dynpro      using 'SAPMF02K' '0210'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB1-FDGRV'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB1-AKONT'
+                              '160000'.
+perform bdc_field       using 'LFB1-FDGRV'
+                              'A1'.
+perform bdc_dynpro      using 'SAPMF02K' '0215'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB1-ZTERM'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB1-ZTERM'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0220'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB5-MAHNA'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB5-MAHNA'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0310'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFM1-WAERS'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFM1-WAERS'
+                              'INR'.
+perform bdc_dynpro      using 'SAPMF02K' '0320'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'RF02K-LIFNR'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+perform bdc_dynpro      using 'SAPLSPO1' '0300'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=YES'.
+perform bdc_transaction using 'XK01'.
+
+ENDLOOP.
+
+perform close_group.

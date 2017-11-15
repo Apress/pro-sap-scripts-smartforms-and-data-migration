@@ -1,0 +1,46 @@
+SFORMYCH02_05_SALESUM
+HFORMYCH02_05_SALESUM
+ OLANE
+ HEADFORM      YCH02_05_SALESUMSAP                                                   DEF ECustomer Wise Sales Summary                       YCH02_05_SALESUM        00016SAPUSER     700 20150109105720SAPUSER     700 2015011009040213200011 E0                                                                                                                           800
+ LINE/:FORM CPI 10; LPI 6; TAB-STOP 1 CM; START-PAGE ONLY_PG; PARAGRAPH DP; RDI;
+ LINE/:FORM RDIDEV;
+ LINE/:PARAGRAPH DP LINE-SPACE 1 LN;
+ LINE/:STRING BL BOLD ON;
+ LINE/:WINDOW GTOTAL TYPE VAR;
+ LINE/:WINDOW HEADING TYPE VAR;
+ LINE/:WINDOW MAIN
+ LINE/:PAGE ONLY_PG NEXT ONLY_PG;
+ LINE/:PAGE ONLY_PG MAIN 0 5 CH 7 LN 73 CH 57 LN;
+ LINE/:PAGE ONLY_PG WINDOW GTOTAL 5 CH 64 LN 73 CH 2 LN;
+ LINE/:PAGE ONLY_PG WINDOW HEADING 5 CH 1 LN 73 CH 7 LN;
+ END
+ HEADFORM      YCH02_05_SALESUMSAP                                                   TXT ECustomer Wise Sales Summary                       YCH02_05_SALESUM        00016SAPUSER     700 20150109105720SAPUSER     700 2015011009040213200026 E0                                                                                                                           800
+ LINE/:FORM TEXT 'Customer Wise Sales Summary';
+ LINE/:PARAGRAPH DP TEXT 'Default Paragraph';
+ LINE/:STRING BL TEXT 'Bold';
+ LINE/:WINDOW GTOTAL TEXT 'Grand Total';
+ LINE/:WINDOW HEADING TEXT 'Heading';
+ LINE/:WINDOW MAIN TEXT 'Main Window';
+ LINE/:PAGE ONLY_PG TEXT 'ONLY PAGE';
+ LINE/WMAIN
+ LINE/EITEM_DATA
+ LINE*  &SRL_NO(Z5)& &CUST_SUMM_STRU-KUNNR(K10)& &CUST_SUMM_STRU-NAME1(35)&
+ LINE=   &CUST_SUMM_STRU-NETWR(R17)&
+ LINE/WHEADING
+ LINE* Customer Wise Sales Summary-Company Code: &T001-BUKRS&/&T001-BUTXT&
+ LINE* Currency: &T001-WAERS&,,,,,,,,,,,,,,,,,,,,,,,,,,    Page:&PAGE(C3)&
+ LINE/:POSITION YORIGIN 4 LN
+ LINE/:BOX HEIGHT 61 LN FRAME 14 TW INTENSITY 8
+ LINE/:BOX HEIGHT 3 LN FRAME 21 TW INTENSITY 16
+ LINE*
+ LINE* <BL> Srl.  Customer      N a m e</>
+ LINE= <BL>                                     Amount</>
+ LINE* <BL> No.   Code</>
+ LINE/WGTOTAL
+ LINE/:IF &NEXTPAGE(C)& = '0'
+ LINE*
+ LINE* ,,,,,,,,,,,,,,,,,,,,,,     Total: &TOTAL(17)&
+ LINE/:ENDIF
+ END
+ ACTVSAP
+E

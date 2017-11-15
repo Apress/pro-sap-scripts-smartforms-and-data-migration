@@ -1,0 +1,65 @@
+SFORMYCH01_01_FST_FRM
+HFORMYCH01_01_FST_FRM
+ OLANE
+ HEADFORM      YCH01_01_FST_FRMSAP                                                   DEF EFirst Form: Image & Text                          YCH01_01_FST_FRM        00003SAPUSER     700 20150111142927SAPUSER     700 2015011116102913200013 E0                                                                                                                           800
+ LINE/:FORM CPI 10; LPI 6; TAB-STOP 1 CM; START-PAGE FIRST; PARAGRAPH P1; RDI;
+ LINE/:FORM RDIDEV;
+ LINE/:PARAGRAPH P1 LINE-SPACE 1 LN;
+ LINE/:PARAGRAPH P2 LINE-SPACE 1 LN; SPACE-AFTER 1 LN; FIRST-LINE-INDENT 5 CH;
+ LINE/:PARAGRAPH P3 LINE-SPACE 2 LN;
+ LINE/:STRING C1 FONT YARIAL_M; FONT-SIZE 28;
+ LINE/:STRING C2 FONT COURIER; FONT-SIZE 12; BOLD ON; ULINE ON;
+ LINE/:WINDOW LOGO TYPE GRAPH;
+ LINE/:WINDOW MAIN
+ LINE/:WINDOW VARIABLE TYPE VAR;
+ LINE/:PAGE FIRST
+ LINE/:PAGE FIRST WINDOW LOGO 5 MM 5 MM 40.64 MM 29.81 MM;
+ LINE/:PAGE FIRST WINDOW VARIABLE 46 MM 5 MM 160 MM 190 MM;
+ END
+ HEADFORM      YCH01_01_FST_FRMSAP                                                   TXT EFirst Form: Image & Text                          YCH01_01_FST_FRM        00003SAPUSER     700 20150111142927SAPUSER     700 2015011116102913200043 E0                                                                                                                           800
+ LINE/:FORM TEXT 'First Form: Image & Text';
+ LINE/:PARAGRAPH P1 TEXT 'Para 1';
+ LINE/:PARAGRAPH P2 TEXT 'Para 2';
+ LINE/:PARAGRAPH P3 TEXT 'Para 3';
+ LINE/:STRING C1 TEXT 'YARIAL_M MonoSpaced 28';
+ LINE/:STRING C2 TEXT 'Courier Bold & Underline';
+ LINE/:WINDOW LOGO TEXT 'YCH01_COMPANY_LOGO';
+ LINE/:WINDOW MAIN TEXT 'Main Window';
+ LINE/:WINDOW VARIABLE TEXT 'Variable Window';
+ LINE/:PAGE FIRST TEXT 'Only Page';
+ LINE/WLOGO
+ LINE/:BITMAP 'YCH01_COMPANY_LOGO' OBJECT GRAPHICS ID BMAP TYPE BCOL
+ LINE/WVARIABLE
+ LINEP1
+ LINEP3<C1>Structure of Selection Tables</>
+ LINEP1
+ LINEP1
+ LINEP2The structure of a selection table consists of four fields:
+ LINE=  SIGN, OPTION LOW, and HIGH. Each row of a selection table
+ LINE=  constitutes a sub-condition for the complete selection
+ LINE=  criterion. Following is a description of the selection table
+ LINE=  fields:
+ LINEP1<C2>SIGN</>
+ LINEP2The field SIGN is of data type C and length 1. The field SIGN
+ LINE=  can assume either of the two values:.
+ LINEP2I for inclusion
+ LINEP2E for exclusion
+ LINEP1<C2>OPTION</>
+ LINEP2The field OPTION is of data type C and length 2. The field
+ LINE=   OPTION contains the selection operator and can assume the
+ LINE=   following values:
+ LINEP2If the field HIGH contains INITIAL value, the field OPTION can
+ LINE=  assume any of these values: EQ, NE, GT, GE, LT, LE, CP, and NP
+ LINE=  (Single values or single pattern values)
+ LINEP2 If the field HIGH is not INITIAL, the field OPTION can assume any of
+ LINE=  these values: BT and NB. (Range values)
+ LINEP1<C2>LOW</>
+ LINEP2The data type and length of the field LOW is derived from the data
+ LINE=  object or the type to which the selection table variable is referring.
+ LINEP1<C2>HIGH</>
+ LINEP2The data type and length of the field HIGH is also derived from the
+ LINE=  data object or the type to which the selection table variable is
+ LINE=   referring.
+ END
+ ACTVSAP
+E

@@ -1,0 +1,45 @@
+SFORMYCH01_04_MLIST2
+HFORMYCH01_04_MLIST2
+ OLANE
+ HEADFORM      YCH01_04_MLIST2 SAP                                                   DEF EMaterial List - Landscape Mode                    YCH01_04_MLIST2         00006SAPUSER     700 20150109182450SAPUSER     700 2015010919232313200011 E0                                                                                                                           800
+ LINE/:FORM CPI 10; LPI 6; TAB-STOP 1 CM; FONT-SIZE 10; START-PAGE FIRST;
+ LINE/:FORM FORMAT DINA4 LANDSCAPE; PARAGRAPH P1; RDI; RDIDEV;
+ LINE/:PARAGRAPH P1 LINE-SPACE 1 LN;
+ LINE/:WINDOW HEADING1 TYPE VAR;
+ LINE/:WINDOW HEADING2 TYPE VAR;
+ LINE/:WINDOW MAIN
+ LINE/:PAGE FIRST NEXT FIRST;
+ LINE/:PAGE FIRST MAIN 0 5 MM 35 MM 140 MM 168 MM;
+ LINE/:PAGE FIRST MAIN 1 152 MM 35 MM 140 MM 168 MM;
+ LINE/:PAGE FIRST WINDOW HEADING1 5 MM 5 MM 145 MM 30 MM;
+ LINE/:PAGE FIRST WINDOW HEADING2 152 MM 5 MM 145 MM 30 MM;
+ END
+ HEADFORM      YCH01_04_MLIST2 SAP                                                   TXT EMaterial List - Landscape Mode                    YCH01_04_MLIST2         00006SAPUSER     700 20150109182450SAPUSER     700 2015010919232313200025 E0                                                                                                                           800
+ LINE/:FORM TEXT 'Material List - Landscape Mode';
+ LINE/:PARAGRAPH P1 TEXT 'Default Paragraph';
+ LINE/:WINDOW HEADING1 TEXT 'HEADING1';
+ LINE/:WINDOW HEADING2 TEXT 'HEADING2';
+ LINE/:WINDOW MAIN TEXT 'Main Window';
+ LINE/:PAGE FIRST TEXT 'Only Page';
+ LINE/WHEADING1
+ LINE/ELIST_HEADING
+ LINE* ,,,,List of Materials as on &SYST-DATUM&
+ LINE*
+ LINE* &ULINE(65)&
+ LINE*  Srl.  Material Code        Description
+ LINE*   No.
+ LINE* &ULINE(65)&
+ LINE/WMAIN
+ LINE/ELIST_DATA
+ LINE* &SRL_NO(Z5)& &MAKT-MATNR(K18)& &MAKT-MAKTX(40)&
+ LINE/WHEADING2
+ LINE/ELIST_HEADING
+ LINE* ,,,,,,,,,,,,,,,,,,,,,,      Page: &PAGE(3)&
+ LINE*
+ LINE* &ULINE(65)&
+ LINE*  Srl.  Material Code       Description
+ LINE*   No.
+ LINE* &ULINE(65)&
+ END
+ ACTVSAP
+E

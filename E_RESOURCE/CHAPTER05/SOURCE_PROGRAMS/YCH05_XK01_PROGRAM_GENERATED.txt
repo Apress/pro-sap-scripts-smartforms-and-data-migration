@@ -1,0 +1,105 @@
+report YCH05_XK01_PROGRAM_GENERATED
+       no standard page heading line-size 255.
+
+include bdcrecx1.
+
+start-of-selection.
+
+perform open_group.
+
+perform bdc_dynpro      using 'SAPMF02K' '0100'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'RF02K-KTOKK'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'RF02K-LIFNR'
+                              '91001'.
+perform bdc_field       using 'RF02K-BUKRS'
+                              '0001'.
+perform bdc_field       using 'RF02K-EKORG'
+                              '0001'.
+perform bdc_field       using 'RF02K-KTOKK'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0110'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFA1-SPRAS'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFA1-ANRED'
+                              'Company'.
+perform bdc_field       using 'LFA1-NAME1'
+                              'OBELIX AND COMPANY'.
+perform bdc_field       using 'LFA1-SORTL'
+                              'OBELIX'.
+perform bdc_field       using 'LFA1-STRAS'
+                              '456, M.G. ROAD'.
+perform bdc_field       using 'LFA1-ORT01'
+                              'NEW DELHI'.
+perform bdc_field       using 'LFA1-PSTLZ'
+                              '110102'.
+perform bdc_field       using 'LFA1-LAND1'
+                              'IN'.
+perform bdc_field       using 'LFA1-SPRAS'
+                              'EN'.
+perform bdc_dynpro      using 'SAPMF02K' '0120'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFA1-KUNNR'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_dynpro      using 'SAPMF02K' '0130'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFBK-BANKN(01)'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+perform bdc_field       using 'LFBK-BANKS(01)'
+                              'US'.
+perform bdc_field       using 'LFBK-BANKL(01)'
+                              '123123123'.
+perform bdc_field       using 'LFBK-BANKN(01)'
+                              '1234567'.
+perform bdc_dynpro      using 'SAPMF02K' '0130'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFBK-BANKS(01)'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+perform bdc_dynpro      using 'SAPMF02K' '0210'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB1-FDGRV'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB1-AKONT'
+                              '160000'.
+perform bdc_field       using 'LFB1-FDGRV'
+                              'A1'.
+perform bdc_dynpro      using 'SAPMF02K' '0215'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB1-ZTERM'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB1-ZTERM'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0220'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB5-MAHNA'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB5-MAHNA'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0310'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFM1-WAERS'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFM1-WAERS'
+                              'INR'.
+perform bdc_dynpro      using 'SAPMF02K' '0320'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'RF02K-LIFNR'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+perform bdc_dynpro      using 'SAPLSPO1' '0300'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=YES'.
+perform bdc_transaction using 'XK01'.
+
+perform close_group.

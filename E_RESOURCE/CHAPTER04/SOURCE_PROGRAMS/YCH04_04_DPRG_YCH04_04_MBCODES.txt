@@ -1,0 +1,82 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH04_04_DPRG_YCH04_04_MBCODES
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH04_04_DPRG_YCH04_04_MBCODES.
+
+******************************************************
+* Driver Program for Form: YCH04_04_MATERIAL_BCODES **
+* Material Bar Code Label Print                     **
+******************************************************
+TABLES MAKT.
+
+DATA: MATR_TAB    TYPE STANDARD TABLE OF YCH04_MATR_STRU
+                         WITH HEADER LINE,
+      REM         TYPE I,
+      FORM_NAME   TYPE TDSFNAME  "Form Name
+                                VALUE 'YCH04_04_MATERIAL_BCODES',
+      FM_NAME     TYPE RS38L_FNAM. "Function Module Name
+
+*******************************************************************
+START-OF-SELECTION.
+
+SELECT * FROM MAKT INTO MAKT UP TO 1000 ROWS
+   WHERE SPRAS = SY-LANGU ORDER BY MATNR.
+
+ REM = SY-DBCNT MOD 2.
+
+ IF REM <> 0.
+  MATR_TAB-MATNR1 = MAKT-MATNR.
+  MATR_TAB-MAKTX1 = MAKT-MAKTX.
+ ELSE.
+  MATR_TAB-MATNR2 = MAKT-MATNR.
+  MATR_TAB-MAKTX2 = MAKT-MAKTX.
+  APPEND MATR_TAB TO MATR_TAB.
+  CLEAR MATR_TAB.
+ ENDIF.
+
+ENDSELECT.
+******************************************************
+IF MATR_TAB IS NOT INITIAL.
+ APPEND MATR_TAB TO MATR_TAB.
+ENDIF.
+
+IF LINES( MATR_TAB ) = 0.
+ MESSAGE S001(YCH02_MCLASS) DISPLAY LIKE 'E'. "No Data Retrieved
+ EXIT.
+ENDIF.
+
+CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+  EXPORTING
+    FORMNAME                 = FORM_NAME
+ IMPORTING
+   FM_NAME                   = FM_NAME
+ EXCEPTIONS
+   NO_FORM                  = 1
+   NO_FUNCTION_MODULE       = 2
+   OTHERS                   = 3
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+ CALL FUNCTION FM_NAME
+*  EXPORTING
+  TABLES
+    MATR_TAB      = MATR_TAB
+  EXCEPTIONS
+    FORMATTING_ERROR           = 1
+    INTERNAL_ERROR             = 2
+    SEND_ERROR                 = 3
+    USER_CANCELED              = 4
+    OTHERS                     = 5
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.

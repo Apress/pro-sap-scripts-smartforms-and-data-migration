@@ -1,0 +1,77 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH04_05_DPRG_YCH02_05_SALESUM
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH04_05_DPRG_YCH04_05_SALESUM.
+
+**************************************************
+* Driver Program for Form: YCH04_05_SALESUM     **
+* Customer Wise Sales Summary of a Company Code **
+**************************************************
+
+TABLES: T001.
+
+DATA: CUST_SUMM_TAB  TYPE STANDARD TABLE OF YCH04_SALES_SUMM_STRU,
+      CUST_SUMM_STRU TYPE YCH04_SALES_SUMM_STRU,
+      FORM_NAME      TYPE TDSFNAME VALUE 'YCH04_05_SALESUM', "Form Name
+      FM_NAME        TYPE RS38L_FNAM. "Function Module Name
+**********************************************************************
+PARAMETERS COMP_CD TYPE VBRK-BUKRS DEFAULT 3000 VALUE CHECK.
+
+START-OF-SELECTION.
+
+SELECT SINGLE * FROM T001 WHERE BUKRS = COMP_CD.
+
+SELECT KUNNR NAME1 KURRF NETWR WAERK FROM YCH02_VBRK_KNA1 INTO
+      CUST_SUMM_STRU WHERE BUKRS = COMP_CD.
+
+ CUST_SUMM_STRU-NETWR = CUST_SUMM_STRU-NETWR * CUST_SUMM_STRU-KURRF.
+ CUST_SUMM_STRU-KURRF = 0.
+
+ COLLECT CUST_SUMM_STRU INTO CUST_SUMM_TAB.
+ENDSELECT.
+
+IF LINES( CUST_SUMM_TAB ) = 0.
+ MESSAGE S001(YCH02_MCLASS) DISPLAY LIKE 'E'. "No Data Retrieved
+ EXIT.
+ENDIF.
+
+SORT CUST_SUMM_TAB BY KUNNR.
+
+CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+  EXPORTING
+    FORMNAME                 = FORM_NAME
+ IMPORTING
+   FM_NAME                   = FM_NAME
+ EXCEPTIONS
+   NO_FORM                  = 1
+   NO_FUNCTION_MODULE       = 2
+   OTHERS                   = 3
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+ CALL FUNCTION FM_NAME
+  EXPORTING
+*    CONTROL_PARAMETERS     = CONTROLS
+*    EKKO                   = EKKO
+    T001                   = T001
+  TABLES
+    SALES_SUMMARY_TAB      = CUST_SUMM_TAB
+  EXCEPTIONS
+    FORMATTING_ERROR           = 1
+    INTERNAL_ERROR             = 2
+    SEND_ERROR                 = 3
+    USER_CANCELED              = 4
+    OTHERS                     = 5
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.

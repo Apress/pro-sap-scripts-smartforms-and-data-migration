@@ -1,0 +1,111 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH02_01_PPRG_YCH02_01_ADR_STK
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH02_01_PPRG_YCH02_01_ADR_STK.
+
+**********************************************************
+* Address Labels for Vendors of a Specific Company Code **
+**********************************************************
+
+TYPES: BEGIN OF LFA1_STRU_TP,
+        LIFNR   TYPE LIFNR,
+        ADRNR   TYPE ADRNR,
+        ANRED   TYPE ANRED,
+        NAME1   TYPE NAME1_GP,
+        NAME2   TYPE NAME2_GP,
+        NAME3   TYPE NAME3_GP,
+        NAME4   TYPE NAME4_GP,
+        STRAS   TYPE STRAS_GP,
+        PFACH   TYPE PFACH,
+        PSTL2   TYPE PSTL2,
+        ORT01   TYPE ORT01_GP,
+        ORT02   TYPE ORT02_GP,
+        PSTLZ   TYPE PSTLZ,
+        LAND1   TYPE LAND1_GP,
+        REGIO   TYPE REGIO,
+       END OF LFA1_STRU_TP.
+
+
+TABLES: T001.
+
+DATA: LFA1_TAB    TYPE STANDARD TABLE OF LFA1_STRU_TP,
+      LFA1_STRU   TYPE LFA1_STRU_TP,
+      COUNTER(2)  TYPE N.
+********************************************************************
+PARAMETERS: COMP_CD  TYPE KNB1-BUKRS DEFAULT 3000 VALUE CHECK.
+
+********************************************************************
+START-OF-SELECTION.
+
+
+SELECT SINGLE * FROM T001 WHERE BUKRS = COMP_CD.
+
+SELECT LIFNR ADRNR ANRED NAME1 NAME2 NAME3 NAME4 STRAS PFACH
+         PSTL2 ORT01 ORT02 PSTLZ LAND1 REGIO FROM YCH02_LFA1_LFB1
+       INTO TABLE LFA1_TAB WHERE BUKRS = COMP_CD.
+
+SORT LFA1_TAB BY LIFNR.
+******************************************************************
+CALL FUNCTION 'OPEN_FORM'
+ EXPORTING
+   FORM                              = 'YCH02_01_ADR_STK'
+   LANGUAGE                          = 'E'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+*******************************************************
+LOOP AT LFA1_TAB INTO LFA1_STRU.
+
+
+ COUNTER = COUNTER + 1.
+
+ IF COUNTER = '01'.
+  CALL FUNCTION 'START_FORM'
+   EXPORTING
+     FORM                   = 'YCH02_01_ADR_STK'
+     LANGUAGE               = 'E'
+            .
+  IF SY-SUBRC <> 0.
+   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+           WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+ ENDIF.
+
+ CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    ELEMENT                        = 'ADDRESS'
+    WINDOW                         = 'MAIN'
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+          WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+ IF COUNTER = '15'.
+  COUNTER = 0.
+  CALL FUNCTION 'END_FORM'
+            .
+  IF SY-SUBRC <> 0.
+   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+           WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+ ENDIF.
+
+ENDLOOP.
+********************************************
+CALL FUNCTION 'CLOSE_FORM'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.

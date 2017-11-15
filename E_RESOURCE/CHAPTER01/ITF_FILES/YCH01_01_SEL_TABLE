@@ -1,0 +1,47 @@
+/HTEXT
+/:OBJECT CLIPBOARD
+/:NAME SAPUSER
+/:ID 0005
+/:LANGUAGE E
+/:FORM YCH02_04_MEDRUCK
+/:STYLE
+/:FIRST-USER SAPUSER
+/:FIRST-DATE 11 01 2015
+/:FIRST-TIME 16 14 20
+/:LAST-USER SAPUSER
+/:LAST-DATE 11 01 2015
+/:LAST-TIME 16 19 44
+/:TITLE 'Bestellungen                                      '
+/:TITLE1 '                '
+/:TITLE2 '                '
+/MTEXT
+P1
+P3<C1>Structure of Selection Tables</>
+P1
+P1
+P2The structure of a selection table consists of four fields:
+=  SIGN, OPTION LOW, and HIGH. Each row of a selection table
+=  constitutes a sub-condition for the complete selection
+=  criterion. Following is a description of the selection table
+=  fields:
+P1<C2>SIGN</>
+P2The field SIGN is of data type C and length 1. The field SIGN
+=  can assume either of the two values:.
+P2I for inclusion
+P2E for exclusion
+P1<C2>OPTION</>
+P2The field OPTION is of data type C and length 2. The field
+=   OPTION contains the selection operator and can assume the
+=   following values:
+P2If the field HIGH contains INITIAL value, the field OPTION can
+=  assume any of these values: EQ, NE, GT, GE, LT, LE, CP, and NP
+=  (Single values or single pattern values)
+P2 If the field HIGH is not INITIAL, the field OPTION can assume any of
+=  these values: BT and NB. (Range values)
+P1<C2>LOW</>
+P2The data type and length of the field LOW is derived from the data
+=  object or the type to which the selection table variable is referring.
+P1<C2>HIGH</>
+P2The data type and length of the field HIGH is also derived from the
+=  data object or the type to which the selection table variable is
+=   referring.

@@ -1,0 +1,35 @@
+STEXTTEXT,YCH01_01_SEL_TABLES,ST,E
+HTEXTTEXT,YCH01_01_SEL_TABLES,ST,E
+ HEADTEXT      YCH01_01_SEL_TABLES                                                   ST  E                                                  YCH01_01_FST_FRMYCH01_0100000SAPUSER     700 20150111164328SAPUSER     700 2015011116463713200030  0                                                                                                                           800
+ LINEP1
+ LINEP3<C1>Structure of Selection Tables</>
+ LINEP1
+ LINEP1
+ LINEP2The structure of a selection table consists of four fields:
+ LINE=  SIGN, OPTION LOW, and HIGH. Each row of a selection table
+ LINE=  constitutes a sub-condition for the complete selection
+ LINE=  criterion. Following is a description of the selection table
+ LINE=  fields:
+ LINEP1<C2>SIGN</>
+ LINEP2The field SIGN is of data type C and length 1. The field SIGN
+ LINE=  can assume either of the two values:.
+ LINEP2I for inclusion
+ LINEP2E for exclusion
+ LINEP1<C2>OPTION</>
+ LINEP2The field OPTION is of data type C and length 2. The field
+ LINE=   OPTION contains the selection operator and can assume the
+ LINE=   following values:
+ LINEP2If the field HIGH contains INITIAL value, the field OPTION can
+ LINE=  assume any of these values: EQ, NE, GT, GE, LT, LE, CP, and NP
+ LINE=  (Single values or single pattern values)
+ LINEP2 If the field HIGH is not INITIAL, the field OPTION can assume any of
+ LINE=  these values: BT and NB. (Range values)
+ LINEP1<C2>LOW</>
+ LINEP2The data type and length of the field LOW is derived from the data
+ LINE=  object or the type to which the selection table variable is referring.
+ LINEP1<C2>HIGH</>
+ LINEP2The data type and length of the field HIGH is also derived from the
+ LINE=  data object or the type to which the selection table variable is
+ LINE=   referring.
+ END
+E

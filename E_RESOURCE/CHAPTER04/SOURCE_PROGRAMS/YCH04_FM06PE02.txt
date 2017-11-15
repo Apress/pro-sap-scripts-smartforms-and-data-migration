@@ -1,0 +1,611 @@
+*----------------------------------------------------------------------*
+*   INCLUDE FM06PE02                                                   *
+*----------------------------------------------------------------------*
+form entry_neu using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+
+**************************************
+* Extra data defined for smartforms **
+**************************************
+DATA: FUNC_NAME TYPE RS38L_FNAM,            "Extra for smartforms
+      OUTPUT    TYPE SSFCOMPOP,             "Extra for smartforms
+      DIALOG    TYPE SSFCTRLOP,             "Extra for smartforms
+      XKOMK     TYPE STANDARD TABLE OF KOMK."Extra for smartforms
+
+********************************************
+  clear ent_retco.
+  if nast-aende eq space.
+    l_druvo = '1'.
+  else.
+    l_druvo = '2'.
+  endif.
+
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+
+*************modification for smartforms*******
+*BREAK-POINT.
+  IF TNAPR-SFORM NE ' '.                    "Extra for smartforms
+   CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME' "Extra for smartforms
+        EXPORTING                           "Extra for smartforms
+         FORMNAME   = TNAPR-SFORM           "Extra for smartforms
+        IMPORTING                           "Extra for smartforms
+         FM_NAME    = FUNC_NAME             "Extra for smartforms
+        EXCEPTIONS                          "Extra for smartforms
+         NO_FORM            = 1             "Extra for smartforms
+         NO_FUNCTION_MODULE = 2             "Extra for smartforms
+         OTHERS             = 3.            "Extra for smartforms
+
+ IF SY-SUBRC EQ 0.                          "Extra for smartforms
+  DIALOG-NO_DIALOG   = 'X'.                 "Extra for smartforms
+  DIALOG-PREVIEW     = 'X'.                 "Extra for smartforms
+  DIALOG-LANGU       = L_DOC-XEKKO-SPRAS.   "Extra for smartforms
+  OUTPUT-TDDEST      = 'LP01'.              "Extra for smartforms
+*  OUTPUT-BCS_LANGU   = L_DOC-XEKKO-SPRAS.  "Extra for smartforms
+  OUTPUT-TDNOPREV    = ' '.                 "Extra for smartforms
+  OUTPUT-TDNOPRINT   = ' '.                 "Extra for smartforms
+  OUTPUT-TDIMMED     = 'X'.                 "Extra for smartforms
+  OUTPUT-TDNEWID     = 'X'.                 "Extra for smartforms
+*BREAK-POINT.
+  CALL FUNCTION FUNC_NAME                   "Extra for smartforms
+        EXPORTING                           "Extra for smartforms
+         CONTROL_PARAMETERS = DIALOG        "Extra for smartforms
+         OUTPUT_OPTIONS     = OUTPUT        "Extra for smartforms
+         USER_SETTINGS      = ' '           "Extra for smartforms
+         ZXEKKO             = L_DOC-XEKKO   "Extra for smartforms
+         ZXPEKKO            = L_DOC-XPEKKO  "Extra for smartforms
+        TABLES                              "Extra for smartforms
+         L_XEKPO            = L_DOC-XEKPO   "Extra for smartforms
+         L_XEKPA            = L_DOC-XEKPA   "Extra for smartforms
+         L_XPEKPO           = L_DOC-XPEKPO  "Extra for smartforms
+         L_XEKET            = L_DOC-XEKET   "Extra for smartforms
+         L_XTKOMV           = L_DOC-XTKOMV  "Extra for smartforms
+         L_XEKKN            = L_DOC-XEKKN   "Extra for smartforms
+         L_XEKEK            = L_DOC-XEKEK   "Extra for smartforms
+         L_XKOMK            = XKOMK         "Extra for smartforms
+        EXCEPTIONS                          "Extra for smartforms
+         FORMATTING_ERROR   = 1             "Extra for smartforms
+         INTERNAL_ERROR     = 2             "Extra for smartforms
+         SEND_ERROR         = 3             "Extra for smartforms
+         USER_CANCELED      = 4             "Extra for smartforms
+         OTHERS             = 5.            "Extra for smartforms
+ ELSE.                                      "Extra for smartforms
+  CALL FUNCTION 'ME_PRINT_PO'               "Extra for smartforms
+        EXPORTING                           "Extra for smartforms
+         IX_NAST            = L_NAST        "Extra for smartforms
+         IX_DRUVO           = L_DRUVO       "Extra for smartforms
+         DOC                = L_DOC         "Extra for smartforms
+         IX_SCREEN          = ENT_SCREEN    "Extra for smartforms
+         IX_FROM_MEMORY     = L_FROM_MEMORY "Extra for smartforms
+         IX_TOA_DARA        = TOA_DARA      "Extra for smartforms
+         IX_ARC_PARAMS      = ARC_PARAMS    "Extra for smartforms
+         IX_FONAM           = TNAPR-FONAM   "Extra for smartforms
+        IMPORTING                           "Extra for smartforms
+         EX_RETCO           = ENT_RETCO.    "Extra for smartforms
+ ENDIF.                                     "Extra for smartforms
+ELSE.                                       "Extra for smartforms
+
+*****modification for smartforms over*******
+
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+ENDIF.
+endform.
+
+*eject
+*----------------------------------------------------------------------*
+* Umlagerungsbestellung,  Hinweis 670912                               *
+*----------------------------------------------------------------------*
+form entry_neu_sto using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print,
+        F_STO.                                              "670912
+
+
+  clear ent_retco.
+  if nast-aende eq space.
+    l_druvo = '1'.
+  else.
+    l_druvo = '2'.
+  endif.
+
+  F_STO = 'X'.                                              "670912
+
+  call function 'ME_READ_PO_FOR_PRINTING'
+       EXPORTING
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       IMPORTING
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       CHANGING
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       EXPORTING
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam                    "HW 214570
+            ix_sto         = F_STO                          "670912
+       IMPORTING
+            ex_retco       = ent_retco.
+endform.
+
+*eject
+*----------------------------------------------------------------------*
+* Mahnung
+*----------------------------------------------------------------------*
+form entry_mahn using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = '3'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+
+*eject
+*----------------------------------------------------------------------*
+* Auftragsbestätigungsmahnung
+*----------------------------------------------------------------------*
+form entry_aufb using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = '7'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Lieferabrufdruck für Formular MEDRUCK mit Fortschrittszahlen
+*----------------------------------------------------------------------*
+form entry_lphe using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_xfz,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = '9'.
+  l_xfz = 'X'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_xfz         = l_xfz
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Lieferabrufdruck für Formular MEDRUCK ohne Fortschrittszahlen
+*----------------------------------------------------------------------*
+form entry_lphe_cd using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = '9'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Feinabrufdruck für Formular MEDRUCK mit Fortschrittszahlen
+*----------------------------------------------------------------------*
+form entry_lpje using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_xfz,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = 'A'.
+  l_xfz = 'X'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_xfz         = l_xfz
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Feinabrufdruck für Formular MEDRUCK ohne Fortschrittszahlen
+*----------------------------------------------------------------------*
+form entry_lpje_cd using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = 'A'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+*   INCLUDE FM06PE02                                                   *
+*----------------------------------------------------------------------*
+form entry_neu_matrix using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  if nast-aende eq space.
+    l_druvo = '1'.
+  else.
+    l_druvo = '2'.
+  endif.
+
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_mflag       = 'X'
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Angebotsabsage
+*----------------------------------------------------------------------*
+form entry_absa using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  l_druvo = '4'.
+  clear ent_retco.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Lieferplaneinteilung
+*----------------------------------------------------------------------*
+form entry_lpet using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  if nast-aende eq space.
+    l_druvo = '5'.
+  else.
+    l_druvo = '8'.
+  endif.
+
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Lieferplaneinteilung
+*----------------------------------------------------------------------*
+form entry_lpfz using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  if nast-aende eq space.
+    l_druvo = '5'.
+  else.
+    l_druvo = '8'.
+  endif.
+
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_xfz         = 'X'
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*eject
+*----------------------------------------------------------------------*
+* Mahnung
+*----------------------------------------------------------------------*
+form entry_lpma using ent_retco ent_screen.
+
+  data: l_druvo like t166k-druvo,
+        l_nast  like nast,
+        l_from_memory,
+        l_doc   type meein_purchase_doc_print.
+
+  clear ent_retco.
+  l_druvo = '6'.
+  call function 'ME_READ_PO_FOR_PRINTING'
+       exporting
+            ix_nast        = nast
+            ix_screen      = ent_screen
+       importing
+            ex_retco       = ent_retco
+            ex_nast        = l_nast
+            doc            = l_doc
+       changing
+            cx_druvo       = l_druvo
+            cx_from_memory = l_from_memory.
+  check ent_retco eq 0.
+  call function 'ME_PRINT_PO'
+       exporting
+            ix_nast        = l_nast
+            ix_druvo       = l_druvo
+            doc            = l_doc
+            ix_screen      = ent_screen
+            ix_from_memory = l_from_memory
+            ix_toa_dara    = toa_dara
+            ix_arc_params  = arc_params
+            ix_fonam       = tnapr-fonam          "HW 214570
+       importing
+            ex_retco       = ent_retco.
+endform.
+*ENHANCEMENT-POINT FM06PE02_02 SPOTS ES_SAPFM06P STATIC .

@@ -1,0 +1,103 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH01_01_MLIST_ONE_MWINDOW
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH01_01_MLIST_ONE_MWINDOW.
+
+*******************************************************
+* Material List in SAP Script Form (YCH01_03_MLIST1) **
+*******************************************************
+
+**************************************************************************
+** Declare data: structure MAKT, internal table MAKT_TAB, SRL_NO     *****
+**                                                                   *****
+** Load internal table MAKT_TAB, sort MAKT_TAB by MATNR              *****
+**                                                                   *****
+** CALL FUNCTION MODULE OPEN_FORM, CALL FUNCTION MODULE START_FORM   *****
+**                                                                   *****
+** CALL FUNCTION MODULE WRITE_FORM - list heading in variable window *****
+**                                                                   *****
+** LOOP AT MAKT_TAB INTO MAKT                                        *****
+** Assign SY-TABIX to SRL_NO                                         *****
+** CALL FUNCTION MODULE WRITE_FORM - list body in main window        *****
+** ENDLOOP                                                           *****
+**                                                                   *****
+** CALL FUNCTION MODULE END_FORM, CALL FUNCTION MODULE CLOSE_FORM    *****
+**************************************************************************
+
+TABLES MAKT.
+
+DATA: MAKT_TAB TYPE STANDARD TABLE OF MAKT,
+      SRL_NO   TYPE SY-TABIX.
+
+START-OF-SELECTION.
+
+SELECT * FROM MAKT INTO TABLE MAKT_TAB UP TO 1000 ROWS WHERE SPRAS = SY-LANGU.
+
+SORT MAKT_TAB BY MATNR.
+
+CALL FUNCTION 'OPEN_FORM'
+     EXPORTING
+       FORM                  = 'YCH01_03_MLIST1'
+       LANGUAGE              = SY-LANGU
+                      .
+IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+**********************************************************
+CALL FUNCTION 'START_FORM'
+     EXPORTING
+       FORM                   = 'YCH01_03_MLIST1'
+       LANGUAGE               = SY-LANGU
+          .
+
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+**********************************************************
+CALL FUNCTION 'WRITE_FORM'
+     EXPORTING
+       ELEMENT                 = 'LIST_HEADING'
+       WINDOW                  = 'HEADING'
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+LOOP AT MAKT_TAB INTO MAKT.
+
+  SRL_NO = SY-TABIX.
+
+  CALL FUNCTION 'WRITE_FORM'
+       EXPORTING
+         ELEMENT                = 'LIST_DATA'
+         WINDOW                 = 'MAIN'
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+ENDLOOP.
+*******************************************************
+CALL FUNCTION 'END_FORM'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+CALL FUNCTION 'CLOSE_FORM'
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.

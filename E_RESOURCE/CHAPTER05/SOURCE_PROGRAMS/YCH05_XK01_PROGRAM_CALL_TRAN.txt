@@ -1,0 +1,264 @@
+report YCH05_XK01_PROGRAM_CALL_TRAN
+       no standard page heading line-size 255.
+
+CONSTANTS: ROWS_IN_TB(2) TYPE N VALUE 5. "no of visible rows in table control
+
+* constants defined to create log file ***********
+* being passed as parameters in two subroutines  *
+* (1) BDC_FIELD (2) BDC_TRANSACTION              *
+**************************************************
+CONSTANTS: BUKRS    TYPE BUKRS VALUE '0001',
+           EKORG    TYPE EKORG VALUE '0001',
+           KTOKK    TYPE KTOKK VALUE '0001'.
+
+DATA: BEGIN OF MAIN_STRU, "stru - main
+       LIFNR    TYPE LIFNR,
+       NAME1    TYPE NAME1_GP,
+       STRAS    TYPE STRAS_GP,
+       ORT01    TYPE ORT01_GP,
+       PSTLZ    TYPE PSTLZ,
+      END OF MAIN_STRU,
+
+      BEGIN OF BANK_STRU, "stru - bank
+       LIFNR    TYPE LIFNR,
+       BANKS    TYPE BANKS,
+       BANKL    TYPE BANKL,
+       BANKN    TYPE BANKN,
+      END OF BANK_STRU,
+
+      MAIN_TAB  LIKE STANDARD TABLE OF MAIN_STRU, "itab - main
+      BANK_TAB  LIKE STANDARD TABLE OF BANK_STRU, "itab - bank
+
+*      MAIN_FL   TYPE IBIPPARMS-PATH, "to select file from presentation server
+*      BANK_FL   TYPE IBIPPARMS-PATH,
+
+      SORTL     TYPE STRING, "for SORTL field
+      GSTRING   TYPE STRING, "string for general use
+
+      INDX(2)   TYPE N, "bank data index
+      ROW_NO(6) TYPE N. " log file I
+
+include ych05_bdcrecx1.
+
+PARAMETERS: MFILE TYPE STRING DEFAULT 'YCH05_MAIN_DATA',
+            BFILE TYPE STRING DEFAULT 'YCH05_BANK_DATA',
+            LFILE TYPE STRING DEFAULT 'YCH05_LOG'. " log file I
+
+
+***********************************************
+INITIALIZATION.
+CTU = 'X'. " CALL TRANSACTION radio button set as default
+
+***********************************************
+*AT SELECTION-SCREEN ON VALUE-REQUEST FOR MFILE.
+*
+*CALL FUNCTION 'F4_FILENAME'
+* IMPORTING
+*   FILE_NAME           = MAIN_FL.
+*
+*MFILE = MAIN_FL.
+*
+************************************************
+*AT SELECTION-SCREEN ON VALUE-REQUEST FOR BFILE.
+*
+*CALL FUNCTION 'F4_FILENAME'
+* IMPORTING
+*   FILE_NAME           = BANK_FL.
+*
+*BFILE = BANK_FL.
+*
+
+start-of-selection.
+
+PERFORM OPEN_DATASET USING MFILE.
+
+DO.
+ READ DATASET MFILE INTO MAIN_STRU.
+ IF SY-SUBRC NE 0.
+  EXIT.
+ ENDIF.
+ APPEND MAIN_STRU TO MAIN_TAB.
+ENDDO.
+
+PERFORM CLOSE_DATASET USING MFILE.
+
+
+PERFORM OPEN_DATASET USING BFILE.
+
+DO.
+ READ DATASET BFILE INTO BANK_STRU.
+ IF SY-SUBRC NE 0.
+  EXIT.
+ ENDIF.
+ APPEND BANK_STRU TO BANK_TAB.
+ENDDO.
+
+PERFORM CLOSE_DATASET USING BFILE.
+
+
+IF LINES( MAIN_TAB ) = 0.
+ MESSAGE S001(YCH02_MCLASS) DISPLAY LIKE 'E'. "No Data Retrieved
+ EXIT.
+ENDIF.
+
+****** inserted for log file start ******
+OPEN DATASET LFILE
+              FOR OUTPUT
+              IN TEXT MODE
+              ENCODING DEFAULT WITH SMART LINEFEED.
+********************************************************
+CONCATENATE 'User: '(S02) SY-UNAME '  Date:'(L01) SY-DATUM+6(2) '/'
+            SY-DATUM+4(2) '/' SY-DATUM+0(4) '  Time:'(L02) SY-UZEIT+0(2)
+            ':' SY-UZEIT+2(2) ':' SY-UZEIT+4(2) INTO GSTRING.
+
+TRANSFER GSTRING TO LFILE.
+
+GSTRING = '|'.
+TRANSFER GSTRING TO LFILE.
+***** inserted for log file end
+
+perform open_group.
+
+LOOP AT MAIN_TAB INTO MAIN_STRU. "main loop
+
+ROW_NO = ROW_NO + 1. "log file I
+
+perform bdc_dynpro      using 'SAPMF02K' '0100'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'RF02K-KTOKK'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'RF02K-LIFNR'
+                              MAIN_STRU-LIFNR. "'91001'.
+perform bdc_field       using 'RF02K-BUKRS'
+                              BUKRS. "'0001' / log file C.
+perform bdc_field       using 'RF02K-EKORG'
+                              EKORG. "'0001' / log file C.
+perform bdc_field       using 'RF02K-KTOKK'
+                              KTOKK. "'0001' / log file C.
+perform bdc_dynpro      using 'SAPMF02K' '0110'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFA1-SPRAS'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFA1-ANRED'
+                              'Company'.
+perform bdc_field       using 'LFA1-NAME1'
+                              MAIN_STRU-NAME1. "'OBELIX AND COMPANY'.
+
+SPLIT MAIN_STRU-NAME1 AT ' ' INTO SORTL GSTRING.
+
+perform bdc_field       using 'LFA1-SORTL'
+                              SORTL. "'OBELIX'.
+perform bdc_field       using 'LFA1-STRAS'
+                              MAIN_STRU-STRAS. "'456, M.G. ROAD'.
+perform bdc_field       using 'LFA1-ORT01'
+                              MAIN_STRU-ORT01. "'NEW DELHI'.
+perform bdc_field       using 'LFA1-PSTLZ'
+                              MAIN_STRU-PSTLZ. "'110102'.
+perform bdc_field       using 'LFA1-LAND1'
+                              'IN'.
+perform bdc_field       using 'LFA1-SPRAS'
+                              'EN'.
+perform bdc_dynpro      using 'SAPMF02K' '0120'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFA1-KUNNR'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_dynpro      using 'SAPMF02K' '0130'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFBK-BANKN(01)'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+
+INDX = 0.
+
+LOOP AT BANK_TAB INTO BANK_STRU WHERE
+                   LIFNR = MAIN_STRU-LIFNR. "inner bank loop
+
+INDX = INDX + 1.
+
+CONCATENATE 'LFBK-BANKS(' INDX ')' INTO GSTRING.
+
+perform bdc_field       using GSTRING "'LFBK-BANKS(01)'
+                              BANK_STRU-BANKS. "'US'.
+
+CONCATENATE 'LFBK-BANKL(' INDX ')' INTO GSTRING.
+perform bdc_field       using GSTRING "'LFBK-BANKL(01)'
+                              BANK_STRU-BANKL. "'123123123'.
+
+CONCATENATE 'LFBK-BANKN(' INDX ')' INTO GSTRING.
+perform bdc_field       using GSTRING "'LFBK-BANKN(01)'
+                              BANK_STRU-BANKN. "'1234567'.
+
+IF INDX = ROWS_IN_TB. " no of rows visible in table control reached
+ INDX = 0.            " trigger page down scroll
+
+ perform bdc_field       using 'BDC_CURSOR'
+                               'LFBK-BANKN(05)'.
+
+ perform bdc_field       using 'BDC_OKCODE'
+                               '/23'. "'=P+'. " P+ function code for page down
+
+ENDIF.
+
+perform bdc_dynpro      using 'SAPMF02K' '0130'.
+
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFBK-BANKS(01)'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+ENDLOOP.
+
+perform bdc_dynpro      using 'SAPMF02K' '0210'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB1-FDGRV'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB1-AKONT'
+                              '160000'.
+perform bdc_field       using 'LFB1-FDGRV'
+                              'A1'.
+perform bdc_dynpro      using 'SAPMF02K' '0215'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB1-ZTERM'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB1-ZTERM'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0220'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFB5-MAHNA'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFB5-MAHNA'
+                              '0001'.
+perform bdc_dynpro      using 'SAPMF02K' '0310'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'LFM1-WAERS'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '/00'.
+perform bdc_field       using 'LFM1-WAERS'
+                              'INR'.
+perform bdc_dynpro      using 'SAPMF02K' '0320'.
+perform bdc_field       using 'BDC_CURSOR'
+                              'RF02K-LIFNR'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=ENTR'.
+perform bdc_dynpro      using 'SAPLSPO1' '0300'.
+perform bdc_field       using 'BDC_OKCODE'
+                              '=YES'.
+
+perform bdc_transaction using 'XK01'
+                              ROW_NO " parameters to create log file/ log file C
+                              MAIN_STRU-LIFNR
+                              BUKRS
+                              EKORG
+                              KTOKK
+                              LFILE.
+
+ENDLOOP.
+
+perform close_group using lfile. " log file C
+
+CLOSE DATASET LFILE. " log file I

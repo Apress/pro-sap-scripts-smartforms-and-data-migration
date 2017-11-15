@@ -1,0 +1,134 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH04_02_DPRG_YCH04_02_PORDER
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH04_02_DPRG_YCH04_02_PORDER.
+
+******************************************************************
+* Driver Program - Custom Purchase Order (Form:YCH04_02_PORDER) **
+******************************************************************
+
+TABLES: EKKO,   "Purchasing Doc Header
+        T001.   "Company Code
+
+DATA: ITEM_TAB   TYPE STANDARD TABLE OF YCH04_ITEM_STRU, "Items of PO
+      FORM_NAME  TYPE TDSFNAME VALUE 'YCH04_02_PORDER', "Form Name
+      FM_NAME    TYPE RS38L_FNAM, "Function Module Name
+      CONTROLS   TYPE SSFCTRLOP, "Parameter to Form
+      PCNT       TYPE I. "Counter for Number of Purchase Orders Output
+
+*********************************************
+SELECT-OPTIONS PO_NOS FOR EKKO-EBELN MATCHCODE OBJECT
+     YCH02_01_EKKO_LFA1_SH.
+
+********************Fill Selection Table ************
+*****************************************************
+INITIALIZATION.
+PO_NOS-SIGN   = 'I'.
+PO_NOS-OPTION = 'EQ'.
+PO_NOS-LOW    = '4500004823'.
+APPEND PO_NOS TO PO_NOS.
+
+PO_NOS-LOW    = '4500009520'.
+APPEND PO_NOS TO PO_NOS.
+
+
+*************************************************
+START-OF-SELECTION.
+
+CONTROLS-NO_OPEN   = 'X'.
+CONTROLS-NO_CLOSE  = 'X'.
+CONTROLS-NO_DIALOG = ' '.
+CONTROLS-PREVIEW   = 'X'.
+
+ CALL FUNCTION 'SSF_OPEN'
+  EXPORTING
+    CONTROL_PARAMETERS       = CONTROLS
+  EXCEPTIONS
+    FORMATTING_ERROR         = 1
+    INTERNAL_ERROR           = 2
+    SEND_ERROR               = 3
+    USER_CANCELED            = 4
+    OTHERS                   = 5
+           .
+ IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+************************************************
+
+CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+  EXPORTING
+    FORMNAME                 = FORM_NAME
+ IMPORTING
+   FM_NAME                   = FM_NAME
+ EXCEPTIONS
+   NO_FORM                  = 1
+   NO_FUNCTION_MODULE       = 2
+   OTHERS                   = 3
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+*****Main Loop *****
+
+SELECT * FROM EKKO WHERE EBELN IN PO_NOS.
+
+ IF ( EKKO-SPRAS <> 'D' AND EKKO-SPRAS <> 'E' ) OR EKKO-BSTYP <> 'F'
+    OR ( EKKO-BSART <>'NB'	AND EKKO-BSART <> 'PO' ).
+  CONTINUE.
+ ENDIF.
+
+ SELECT SINGLE * FROM T001 WHERE BUKRS = EKKO-BUKRS. "Get Company Code
+
+ SELECT EBELN EBELP MATNR WERKS MENGE MEINS NETPR NETWR ADRNR ADRN2 TXZ01 FROM EKPO
+  INTO TABLE ITEM_TAB "Load itab from EKPO
+  WHERE EBELN = EKKO-EBELN AND BUKRS = EKKO-BUKRS.
+
+
+ CALL FUNCTION FM_NAME
+  EXPORTING
+    CONTROL_PARAMETERS     = CONTROLS
+    EKKO                   = EKKO
+    T001                   = T001
+  TABLES
+    ITEM_TAB               = ITEM_TAB
+  EXCEPTIONS
+    FORMATTING_ERROR           = 1
+    INTERNAL_ERROR             = 2
+    SEND_ERROR                 = 3
+    USER_CANCELED              = 4
+    OTHERS                     = 5
+           .
+ IF SY-SUBRC <> 0.
+  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+
+ PCNT = PCNT + 1.
+
+ENDSELECT.
+************************************************************
+
+IF PCNT = 0.
+  MESSAGE S000(YCH02_MCLASS) DISPLAY LIKE 'W'. "No Data Processed for Output
+ELSE.
+
+ CALL FUNCTION 'SSF_CLOSE'
+  EXCEPTIONS
+    FORMATTING_ERROR       = 1
+    INTERNAL_ERROR         = 2
+    SEND_ERROR             = 3
+    OTHERS                 = 4
+          .
+ IF SY-SUBRC <> 0.
+   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+           WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ ENDIF.
+ENDIF.

@@ -1,0 +1,40 @@
+*&---------------------------------------------------------------------*
+*& Report  YCH03_01_MLIST1
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  YCH03_01_MLIST1.
+
+*******************************************************
+* Material List in Smartforms Form (YCH03_03_MLIST1) **
+* F.M.: /1BCDWB/SF00000143                           **
+*******************************************************
+
+DATA: MAKT_TAB TYPE STANDARD TABLE OF MAKT.
+
+START-OF-SELECTION.
+
+SELECT * FROM MAKT INTO TABLE MAKT_TAB UP TO 1000 ROWS
+   WHERE SPRAS = SY-LANGU.
+
+SORT MAKT_TAB BY MATNR.
+
+CALL FUNCTION '/1BCDWB/SF00000143' "change the function module name
+                                   "as per the generated name
+  TABLES
+    MAKT_TAB                   = MAKT_TAB
+ EXCEPTIONS
+   FORMATTING_ERROR           = 1
+   INTERNAL_ERROR             = 2
+   SEND_ERROR                 = 3
+   USER_CANCELED              = 4
+   OTHERS                     = 5
+          .
+IF SY-SUBRC <> 0.
+ MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+*************************************************************
